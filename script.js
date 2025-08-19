@@ -1,5 +1,5 @@
+// 1. The up-to-date Minesweeper Function
 function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
-    // Define the emojis. Using a non-spoilered zero saves many characters.
     const mineEmoji = '||:boom:||';
     const numberEmojis = [
         ':o:',
@@ -14,10 +14,8 @@ function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
     ];
     const characterLimit = 190;
 
-    // 1. Create an empty grid
     let field = Array(height).fill(null).map(() => Array(width).fill(0));
 
-    // 2. Randomly place the mines
     let minesPlaced = 0;
     while (minesPlaced < mines) {
         const y = Math.floor(Math.random() * height);
@@ -28,13 +26,9 @@ function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
         }
     }
 
-    // 3. Calculate the numbers for the remaining cells
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            if (field[y][x] === mineEmoji) {
-                continue;
-            }
-
+            if (field[y][x] === mineEmoji) continue;
             let adjacentMines = 0;
             for (let dy = -1; dy <= 1; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
@@ -49,35 +43,53 @@ function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
         }
     }
 
-    // 4. Build the final string, using as many characters as possible
     let output = '';
     let lastAddedRowIndex = -1;
 
-    // First, add as many FULL rows as will fit
     for (let y = 0; y < height; y++) {
         const rowString = field[y].join('');
         const prospectiveOutput = output + (output ? '\n' : '') + rowString;
-        
         if (prospectiveOutput.length <= characterLimit) {
             output = prospectiveOutput;
             lastAddedRowIndex = y;
         } else {
-            break; // Stop when the next full row would exceed the limit
+            break;
         }
     }
 
-    // Next, add individual cells from the following row to fill remaining space
     const nextRowIndex = lastAddedRowIndex + 1;
-    if (nextRowIndex < height) { // Check if there is a next row
+    if (nextRowIndex < height) {
         const nextRow = field[nextRowIndex];
         for (const cell of nextRow) {
             if (output.length + cell.length <= characterLimit) {
                 output += cell;
             } else {
-                break; // Stop when the next cell doesn't fit
+                break;
             }
         }
     }
-
     return output;
 }
+
+// 2. The code that connects the function to the HTML buttons
+//    This part was likely missing!
+const generateBtn = document.getElementById('generate-btn');
+const copyBtn = document.getElementById('copy-btn');
+const outputTextarea = document.getElementById('output');
+
+// Make the "Generate" button call the function
+generateBtn.addEventListener('click', () => {
+    const gameGrid = generateDiscordMinesweeper();
+    outputTextarea.value = gameGrid;
+});
+
+// Make the "Copy" button work
+copyBtn.addEventListener('click', () => {
+    if (outputTextarea.value) {
+        navigator.clipboard.writeText(outputTextarea.value);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => {
+            copyBtn.textContent = 'Copy to Clipboard';
+        }, 2000);
+    }
+});
