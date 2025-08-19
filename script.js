@@ -33,20 +33,16 @@ function generateGame(maxRows = 6) {
         }
     }
 
-    // go through and figure out the numbers for the other spots
+    // --- PASS 1: Do a quick calculation to figure out the final height of the grid ---
+    // (This first calculation might have incorrect numbers at the bottom, which is okay)
     for (let y = 0; y < maxRows; y++) {
         for (let x = 0; x < width; x++) {
-            if (field[y][x] === mineEmoji) {
-                continue;
-            }
+            if (field[y][x] === mineEmoji) continue;
             let adjacentMines = 0;
             for (let dy = -1; dy <= 1; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
-                    if (dx === 0 && dy === 0) {
-                        continue;
-                    }
-                    let newY = y + dy;
-                    let newX = x + dx;
+                    if (dx === 0 && dy === 0) continue;
+                    let newY = y + dy, newX = x + dx;
                     if (newY >= 0 && newY < maxRows && newX >= 0 && newX < width && field[newY][newX] === mineEmoji) {
                         adjacentMines++;
                     }
@@ -56,19 +52,54 @@ function generateGame(maxRows = 6) {
         }
     }
 
-    // build the final text, only adding full rows that fit
-    let output = '';
+    let finalHeight = 0;
+    let tempOutput = '';
     for (let y = 0; y < maxRows; y++) {
         let rowString = field[y].join('');
-        let newOutput = output + (output ? '\n' : '') + rowString;
-
+        let newOutput = tempOutput + (tempOutput ? '\n' : '') + rowString;
         if (newOutput.length <= characterLimit) {
-            output = newOutput;
+            tempOutput = newOutput;
+            finalHeight++;
         } else {
             break;
         }
     }
-    return output;
+
+    // --- PASS 2: Re-calculate the numbers correctly using the finalHeight as the boundary ---
+    for (let y = 0; y < finalHeight; y++) {
+        for (let x = 0; x < width; x++) {
+            // Re-check original mine placement, since the number emojis overwrote the zeros
+            let isMine = false;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    let newY = y + dy, newX = x + dx;
+                    if (newY >= 0 && newY < finalHeight && newX >= 0 && newX < width && field[newY][newX] === mineEmoji) {
+                        isMine = true;
+                        break;
+                    }
+                }
+                if(isMine) break;
+            }
+            if(field[y][x] === mineEmoji) continue;
+
+            let adjacentMines = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    let newY = y + dy, newX = x + dx;
+                    // This is the crucial fix: we now use finalHeight for the boundary
+                    if (newY >= 0 && newY < finalHeight && newX >= 0 && newX < width && field[newY][newX] === mineEmoji) {
+                        adjacentMines++;
+                    }
+                }
+            }
+            field[y][x] = numberEmojis[adjacentMines];
+        }
+    }
+
+    // Build the final string using the fully corrected grid data
+    let finalRows = field.slice(0, finalHeight);
+    return finalRows.map(row => row.join('')).join('\n');
 }
 
 // hook everything up to the html page
