@@ -7,7 +7,6 @@ A simple little web tool to generate a random Minesweeper grid that fits perfect
 **[Check it out here!](https://dorkling.github.io/Discord-Minesweeper/)**
 
 ![Screenshot of the generator](https://drive.google.com/uc?id=1m4tVdx93zw_3fPMRhprLSu1iIeYgSlVZ)
-*(Just take a screenshot of your finished page and name it `screenshot.png` to have it show up here!)*
 
 ---
 
