@@ -1,7 +1,7 @@
-// 1. The up-to-date Minesweeper Function
-function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
-    const mineEmoji = '||:boom:||';
-    const numberEmojis = [
+// the main function to make the minesweeper game
+function generateGame(width = 6, height = 5, mines = 8) {
+    let mineEmoji = '||:boom:||';
+    let numberEmojis = [
         ':o:',
         '||:one:||',
         '||:two:||',
@@ -12,28 +12,33 @@ function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
         '||:seven:||',
         '||:eight:||'
     ];
-    const characterLimit = 190;
+    let characterLimit = 190;
 
+    // setup the field
     let field = Array(height).fill(null).map(() => Array(width).fill(0));
 
+    // put the mines in random spots
     let minesPlaced = 0;
     while (minesPlaced < mines) {
-        const y = Math.floor(Math.random() * height);
-        const x = Math.floor(Math.random() * width);
+        let y = Math.floor(Math.random() * height);
+        let x = Math.floor(Math.random() * width);
         if (field[y][x] !== mineEmoji) {
             field[y][x] = mineEmoji;
             minesPlaced++;
         }
     }
 
+    // figure out the numbers for the other spots
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            if (field[y][x] === mineEmoji) continue;
+            if (field[y][x] === mineEmoji) {
+                continue;
+            }
             let adjacentMines = 0;
             for (let dy = -1; dy <= 1; dy++) {
                 for (let dx = -1; dx <= 1; dx++) {
-                    const newY = y + dy;
-                    const newX = x + dx;
+                    let newY = y + dy;
+                    let newX = x + dx;
                     if (newY >= 0 && newY < height && newX >= 0 && newX < width && field[newY][newX] === mineEmoji) {
                         adjacentMines++;
                     }
@@ -43,24 +48,25 @@ function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
         }
     }
 
+    // build the final text, making sure it fits
     let output = '';
-    let lastAddedRowIndex = -1;
+    let lastRow = -1;
 
     for (let y = 0; y < height; y++) {
-        const rowString = field[y].join('');
-        const prospectiveOutput = output + (output ? '\n' : '') + rowString;
-        if (prospectiveOutput.length <= characterLimit) {
-            output = prospectiveOutput;
-            lastAddedRowIndex = y;
+        let rowString = field[y].join('');
+        let newOutput = output + (output ? '\n' : '') + rowString;
+        if (newOutput.length <= characterLimit) {
+            output = newOutput;
+            lastRow = y;
         } else {
             break;
         }
     }
 
-    const nextRowIndex = lastAddedRowIndex + 1;
-    if (nextRowIndex < height) {
-        const nextRow = field[nextRowIndex];
-        for (const cell of nextRow) {
+    // fill in any leftover space from the next row
+    let nextRow = lastRow + 1;
+    if (nextRow < height) {
+        for (let cell of field[nextRow]) {
             if (output.length + cell.length <= characterLimit) {
                 output += cell;
             } else {
@@ -71,23 +77,21 @@ function generateDiscordMinesweeper(width = 6, height = 5, mines = 8) {
     return output;
 }
 
-// 2. The code that connects the function to the HTML buttons
-//    This part was likely missing!
-const generateBtn = document.getElementById('generate-btn');
-const copyBtn = document.getElementById('copy-btn');
-const outputTextarea = document.getElementById('output');
+// hook everything up to the html page
+let generateBtn = document.getElementById('generate-btn');
+let copyBtn = document.getElementById('copy-btn');
+let outputTextarea = document.getElementById('output');
 
-// Make the "Generate" button call the function
 generateBtn.addEventListener('click', () => {
-    const gameGrid = generateDiscordMinesweeper();
-    outputTextarea.value = gameGrid;
+    let game = generateGame();
+    outputTextarea.value = game;
 });
 
-// Make the "Copy" button work
 copyBtn.addEventListener('click', () => {
     if (outputTextarea.value) {
         navigator.clipboard.writeText(outputTextarea.value);
         copyBtn.textContent = 'Copied!';
+        // change it back after a couple seconds
         setTimeout(() => {
             copyBtn.textContent = 'Copy to Clipboard';
         }, 2000);
