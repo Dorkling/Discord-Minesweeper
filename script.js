@@ -48,31 +48,28 @@ function generateGame(width = 6, height = 5, mines = 8) {
         }
     }
 
-    // build the final text, making sure it fits
+    // build the final text, ensuring line breaks are correct
     let output = '';
-    let lastRow = -1;
-
     for (let y = 0; y < height; y++) {
-        let rowString = field[y].join('');
-        let newOutput = output + (output ? '\n' : '') + rowString;
-        if (newOutput.length <= characterLimit) {
-            output = newOutput;
-            lastRow = y;
-        } else {
-            break;
-        }
-    }
+        let separator = (output === '') ? '' : '\n';
+        let fullRowString = field[y].join('');
 
-    // fill in any leftover space from the next row
-    let nextRow = lastRow + 1;
-    if (nextRow < height) {
-        for (let cell of field[nextRow]) {
+        // Try to add the full row first
+        if (output.length + separator.length + fullRowString.length <= characterLimit) {
+            output += separator + fullRowString;
+            continue;
+        }
+
+        // If the full row doesn't fit, add a partial row and finish
+        output += separator;
+        for (let cell of field[y]) {
             if (output.length + cell.length <= characterLimit) {
                 output += cell;
             } else {
-                break;
+                break; // Stop adding cells
             }
         }
+        break; // Stop adding rows
     }
     return output;
 }
